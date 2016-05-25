@@ -219,6 +219,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             HttpResponse response;
+            String connHost = "";
             for (int execCount = 1;; execCount++) {
 
                 if (execCount > 1 && !RequestEntityProxy.isRepeatable(request)) {
@@ -233,7 +234,7 @@ public class MainClientExec implements ClientExecChain {
                 if (!managedConn.isOpen()) {
                     this.log.debug("Opening connection " + route);
                     try {
-                        establishRoute(proxyAuthState, managedConn, route, request, context);
+                        connHost = establishRoute(proxyAuthState, managedConn, route, request, context);
                     } catch (final TunnelRefusedException ex) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage());
@@ -269,7 +270,7 @@ public class MainClientExec implements ClientExecChain {
                 }
 
                 response = requestExecutor.execute(request, managedConn, context);
-
+                response.addHeader("connInfo", connHost);
                 // The connection is in or can be brought to a re-usable state.
                 if (reuseStrategy.keepAlive(response, context)) {
                     // Set the idle duration of this connection
@@ -360,7 +361,7 @@ public class MainClientExec implements ClientExecChain {
     /**
      * Establishes the target route.
      */
-    void establishRoute(
+    String establishRoute(
             final AuthState proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
@@ -370,6 +371,7 @@ public class MainClientExec implements ClientExecChain {
         final int timeout = config.getConnectTimeout();
         final RouteTracker tracker = new RouteTracker(route);
         int step;
+        String hostConn = "";
         do {
             final HttpRoute fact = tracker.toRoute();
             step = this.routeDirector.nextStep(route, fact);
@@ -377,7 +379,7 @@ public class MainClientExec implements ClientExecChain {
             switch (step) {
 
             case HttpRouteDirector.CONNECT_TARGET:
-                this.connManager.connect(
+                hostConn = this.connManager.connect(
                         managedConn,
                         route,
                         timeout > 0 ? timeout : 0,
@@ -428,6 +430,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
         } while (step > HttpRouteDirector.COMPLETE);
+        return hostConn;
     }
 
     /**

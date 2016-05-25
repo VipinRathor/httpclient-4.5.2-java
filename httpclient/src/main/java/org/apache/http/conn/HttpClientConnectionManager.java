@@ -105,9 +105,10 @@ public interface HttpClientConnectionManager {
      * @param route the route of the connection.
      * @param connectTimeout connect timeout in milliseconds.
      * @param context the actual HTTP context.
+     * @return string
      * @throws IOException
      */
-    void connect(
+    String connect(
             HttpClientConnection conn,
             HttpRoute route,
             int connectTimeout,

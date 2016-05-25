@@ -324,7 +324,7 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Override
-    public void connect(
+    public String connect(
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final int connectTimeout,
@@ -350,8 +350,9 @@ public class PoolingHttpClientConnectionManager
         if (socketConfig == null) {
             socketConfig = SocketConfig.DEFAULT;
         }
-        this.connectionOperator.connect(
+        final String hostConn = this.connectionOperator.connect(
                 conn, host, localAddress, connectTimeout, socketConfig, context);
+        return hostConn;
     }
 
     @Override

@@ -104,6 +104,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final HttpContext context) throws IOException {
         final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
         final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        String successHost="", timeoutHost="";
         if (sf == null) {
             throw new UnsupportedSchemeException(host.getSchemeName() +
                     " protocol is not supported");
@@ -148,7 +149,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     this.log.debug("Connection established " + conn);
                 }
                 this.log.info(String.format("Connection established to %s:%d",address.toString(), port));
-                return ("success,".concat(address.toString().concat(":").concat(Integer.toString(port))));
+                successHost = address.toString().concat(":").concat(Integer.toString(port));
+                return successHost.concat(",").concat(timeoutHost);
             } catch (final SocketTimeoutException ex) {
                 if (last) {
                     throw new ConnectTimeoutException(ex, host, addresses);
@@ -168,12 +170,14 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     throw ex;
                 }
             }
+            //This host failed, append
+            timeoutHost = timeoutHost.concat(",").concat(address.toString()).concat(":").concat(Integer.toString(port));
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connect to " + remoteAddress + " timed out. " +
                         "Connection will be retried using another IP address");
             }
         }
-		return "failed,".concat("");
+        return "";
     }
 
     @Override

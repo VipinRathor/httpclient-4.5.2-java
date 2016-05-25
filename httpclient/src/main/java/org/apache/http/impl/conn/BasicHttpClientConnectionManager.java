@@ -320,7 +320,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public void connect(
+    public String connect(
             final HttpClientConnection conn,
             final HttpRoute route,
             final int connectTimeout,
@@ -335,8 +335,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             host = route.getTargetHost();
         }
         final InetSocketAddress localAddress = route.getLocalSocketAddress();
-        this.connectionOperator.connect(this.conn, host, localAddress,
+        final String connHost = this.connectionOperator.connect(this.conn, host, localAddress,
                 connectTimeout, this.socketConfig, context);
+        return connHost;
     }
 
     @Override
